@@ -74,5 +74,3 @@ Notes
 - This is a minimal scaffold and mock server to get the developer flow working.
 - Use `pnpm -w -r run build` to build all packages.
 - See each package's README for package-specific commands.
-# Link-Ring-Calendar
-링크링 캘린더 (Link-Ring Calendar)
