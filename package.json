@@ -1,0 +1,17 @@
+{
+  "name": "link-ring-calendar",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm -w -r run dev",
+    "build": "pnpm -w -r run build",
+    "start": "pnpm -w -r --parallel run start"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
