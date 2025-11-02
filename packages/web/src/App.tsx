@@ -1,39 +1,84 @@
-import React, { useEffect, useState } from 'react'
-import { trpc } from './trpc'
+import React, { useState, useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import QuickLinkBoard from './components/QuickLinkBoard';
+import Calendar from './components/Calendar';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
+import './styles/global.css.ts';
+import * as styles from './styles/App.css';
 
-type Event = { id: string; title: string; date: string }
+type Page = 'login' | 'register' | 'calendar';
 
-export default function App() {
-  const [events, setEvents] = useState<Event[] | null>(null)
+function App() {
+  const queryClient = new QueryClient();
+  const [user, setUser] = useState<any | null>(null);
+  const [page, setPage] = useState<Page>('login');
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await trpc.getEvents.query()
-        setEvents(res)
-      } catch (err) {
-        console.error(err)
-      }
+    // In a real app, you'd verify the token with the server
+    const token = localStorage.getItem('accessToken');
+    const userData = localStorage.getItem('user');
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+      setPage('calendar');
     }
-    load()
-  }, [])
+  }, []);
 
-  return (
-    <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-      <h1>Link Ring Calendar (web)</h1>
-      <p>This is a minimal client that queries the mock tRPC server.</p>
-      <h2>Events</h2>
-      {events === null ? (
-        <div>Loading...</div>
-      ) : (
-        <ul>
-          {events.map((e) => (
-            <li key={e.id}>
-              <strong>{e.title}</strong> — {e.date}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
+  const handleLoginSuccess = (data: { accessToken: string; refreshToken: string; user: any }) => {
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setUser(data.user);
+    setPage('calendar');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    setUser(null);
+    setPage('login');
+  };
+
+  const renderPage = () => {
+    if (page === 'calendar' && user) {
+      return (
+        <div className={styles.appContainer}>
+          <header className={styles.appHeader}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h1>Link-Ring Calendar</h1>
+              <div>
+                <span>Welcome, {user.nickname}!</span>
+                <button onClick={handleLogout} style={{ marginLeft: '1rem' }}>Logout</button>
+              </div>
+            </div>
+          </header>
+          <div className={styles.appBody}>
+            <QuickLinkBoard />
+            <Calendar />
+          </div>
+        </div>
+      );
+    }
+
+    if (page === 'register') {
+      return (
+        <RegisterPage
+          onRegisterSuccess={() => setPage('login')}
+          onNavigateToLogin={() => setPage('login')}
+        />
+      );
+    }
+
+    return (
+      <LoginPage
+        onLoginSuccess={handleLoginSuccess}
+        onNavigateToRegister={() => setPage('register')}
+      />
+    );
+  };
+
+  return <QueryClientProvider client={queryClient}>{renderPage()}</QueryClientProvider>;
 }
+
+export default App;

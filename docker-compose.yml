@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: linkring
+      POSTGRES_PASSWORD: linkring
+      POSTGRES_DB: linkring
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  server:
+    build: ./packages/server
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://linkring:linkring@db:5432/linkring?schema=public"
+      NODE_ENV: development
+    ports:
+      - '4000:4000'
+    volumes:
+      - ./packages/server:/app
+    command: sh -c "pnpm prisma generate && pnpm prisma migrate deploy && pnpm dev"
+
+  web:
+    build: ./packages/web
+    depends_on:
+      - server
+    ports:
+      - '5173:4173'
+    volumes:
+      - ./packages/web:/app
+    environment:
+      VITE_API_URL: http://localhost:4000/api
+    command: pnpm preview --port 4173
+
+volumes:
+  db-data:
