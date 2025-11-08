@@ -73,6 +73,77 @@ router.post('/', async (req: AuthRequest, res) => {
   }
 });
 
+// PUT /api/quicklinks/:id
+router.put('/:id', async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
+  const { id } = req.params;
+  const { title, url } = req.body;
+
+  try {
+    const existing = await prisma.quickLink.findUnique({ where: { id: Number(id) } });
+    if (!existing || existing.userId !== userId) {
+      return res.status(404).json({ message: 'Link not found' });
+    }
+
+    const updated = await prisma.quickLink.update({
+      where: { id: Number(id) },
+      data: {
+        ...(title && { title }),
+        ...(url && { url }),
+      },
+    });
+
+    const resp: QuickLinkResp = {
+      id: updated.id,
+      title: updated.title,
+      url: updated.url,
+      orderIndex: updated.order_index,
+    };
+
+    res.json({ quickLink: resp });
+  } catch (error) {
+    console.error('Error updating quicklink', error);
+    res.status(500).json({ message: 'Failed to update quick link' });
+  }
+});
+
+// PUT /api/quicklinks/reorder
+router.put('/reorder', async (req: AuthRequest, res) => {
+  const userId = req.user!.userId;
+  const { updates } = req.body;
+
+  if (!Array.isArray(updates)) {
+    return res.status(400).json({ message: 'Updates must be an array' });
+  }
+
+  try {
+    // Verify all links belong to the user
+    const linkIds = updates.map((u: { id: number }) => u.id);
+    const userLinks = await prisma.quickLink.findMany({
+      where: { userId, id: { in: linkIds } },
+    });
+
+    if (userLinks.length !== linkIds.length) {
+      return res.status(403).json({ message: 'Some links do not belong to you' });
+    }
+
+    // Update order_index for each link
+    await Promise.all(
+      updates.map((update: { id: number; orderIndex: number }) =>
+        prisma.quickLink.update({
+          where: { id: update.id },
+          data: { order_index: update.orderIndex },
+        })
+      )
+    );
+
+    res.json({ message: 'Links reordered successfully' });
+  } catch (error) {
+    console.error('Error reordering quicklinks', error);
+    res.status(500).json({ message: 'Failed to reorder quick links' });
+  }
+});
+
 // DELETE /api/quicklinks/:id
 router.delete('/:id', async (req: AuthRequest, res) => {
   const userId = req.user!.userId;

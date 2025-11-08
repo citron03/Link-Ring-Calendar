@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { trpc, trpcClient, queryClient } from './trpc';
 import QuickLinkBoard from './components/QuickLinkBoard';
 import Calendar from './components/Calendar';
 import LoginPage from './components/LoginPage';
@@ -10,7 +11,6 @@ import * as styles from './styles/App.css';
 type Page = 'login' | 'register' | 'calendar';
 
 function App() {
-  const queryClient = new QueryClient();
   const [user, setUser] = useState<any | null>(null);
   const [page, setPage] = useState<Page>('login');
 
@@ -78,7 +78,11 @@ function App() {
     );
   };
 
-  return <QueryClientProvider client={queryClient}>{renderPage()}</QueryClientProvider>;
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>{renderPage()}</QueryClientProvider>
+    </trpc.Provider>
+  );
 }
 
 export default App;

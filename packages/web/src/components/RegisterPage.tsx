@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-
-const API_URL = 'http://localhost:4000/api';
+import { trpc } from '../trpc';
 
 interface RegisterPageProps {
   onRegisterSuccess: () => void;
@@ -13,27 +12,19 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegisterSuccess, onNaviga
   const [nickname, setNickname] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const registerMutation = trpc.auth.register.useMutation({
+    onSuccess: () => {
+      onRegisterSuccess();
+    },
+    onError: (err) => {
+      setError(err.message || 'Registration failed');
+    },
+  });
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    try {
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, nickname }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        onRegisterSuccess();
-      } else {
-        setError(data.message || 'Registration failed');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred.');
-    }
+    registerMutation.mutate({ email, password, nickname });
   };
 
   return (

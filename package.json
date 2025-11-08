@@ -8,8 +8,12 @@
   ],
   "scripts": {
     "dev": "pnpm -w -r run dev",
+    "dev:local": "pnpm -w -r run dev:local",
     "build": "pnpm -w -r run build",
-    "start": "pnpm -w -r --parallel run start"
+    "build:prod": "pnpm -w -r run build:prod",
+    "build:dev": "pnpm -w -r run build:dev",
+    "start": "pnpm -w -r --parallel run start",
+    "start:dev": "pnpm -w -r --parallel run start:dev"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

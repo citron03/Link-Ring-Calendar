@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-
-const API_URL = 'http://localhost:4000/api';
+import { trpc } from '../trpc';
 
 interface LoginPageProps {
   onLoginSuccess: (data: { accessToken: string; refreshToken: string; user: any }) => void;
@@ -12,27 +11,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onNavigateToRegis
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: (data) => {
+      onLoginSuccess(data);
+    },
+    onError: (err) => {
+      setError(err.message || 'Login failed');
+    },
+  });
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-
-    try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        onLoginSuccess(data);
-      } else {
-        setError(data.message || 'Login failed');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred.');
-    }
+    loginMutation.mutate({ email, password });
   };
 
   return (

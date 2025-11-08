@@ -1,57 +1,30 @@
 import React, { useState } from 'react';
 import * as styles from '../styles/QuickLinkBoard.css';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchWithAuth } from '../lib/api';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-
-// As defined in api-and-schema.md
-interface QuickLink {
-  id: number;
-  title: string;
-  url: string;
-  orderIndex: number;
-}
+import { trpc } from '../trpc';
 
 const QuickLinkBoard: React.FC = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newUrl, setNewUrl] = useState('');
-  const queryClient = useQueryClient();
 
-  const { data } = useQuery('quicklinks', async () => {
-    const res = await fetchWithAuth(`${API_URL}/quicklinks`);
-    const d = await res.json();
-    return d.quickLinks as QuickLink[];
-  });
-  const links = data || [];
+  const { data: links = [] } = trpc.quicklinks.list.useQuery();
 
-  const addMutation = useMutation(async (payload: { title: string; url: string }) => {
-    const res = await fetchWithAuth(`${API_URL}/quicklinks`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    return res.json();
-  }, {
-    onSuccess: () => queryClient.invalidateQueries(['quicklinks'])
+  const addMutation = trpc.quicklinks.create.useMutation({
+    onSuccess: () => {
+      setNewTitle('');
+      setNewUrl('');
+    },
   });
 
-  const deleteMutation = useMutation(async (id: number) => {
-    const res = await fetchWithAuth(`${API_URL}/quicklinks/${id}`, { method: 'DELETE' });
-    return res.json();
-  }, {
-    onSuccess: () => queryClient.invalidateQueries(['quicklinks'])
-  });
+  const deleteMutation = trpc.quicklinks.delete.useMutation();
 
   const handleAddLink = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle || !newUrl) return;
     addMutation.mutate({ title: newTitle, url: newUrl });
-    setNewTitle('');
-    setNewUrl('');
   };
 
   const handleDeleteLink = (id: number) => {
-    deleteMutation.mutate(id);
+    deleteMutation.mutate({ id });
   };
 
   return (
