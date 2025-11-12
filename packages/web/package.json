@@ -11,20 +11,20 @@
     "preview:prod": "vite preview --mode production"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@trpc/client": "^10.0.0",
-    "@tanstack/react-query": "^4.0.0",
-    "@trpc/react-query": "^10.0.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "@trpc/client": "catalog:",
+    "@tanstack/react-query": "catalog:",
+    "@trpc/react-query": "catalog:",
     "@link-ring/calendar-server": "workspace:*"
   },
   "devDependencies": {
-    "vite": "^5.0.0",
-    "@vitejs/plugin-react": "^4.0.0",
-    "typescript": "^5.0.0",
-    "@vanilla-extract/css": "^1.14.0",
-    "@vanilla-extract/vite-plugin": "^4.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0"
+    "vite": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "@vanilla-extract/css": "catalog:",
+    "@vanilla-extract/vite-plugin": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
   }
 }
